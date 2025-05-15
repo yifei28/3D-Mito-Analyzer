@@ -4,4 +4,6 @@ In this branch, image processing method is introduced to acquire training datase
  
 The 2D UNet is used for mitochondria segmentation is from this source https://github.com/OBPNPW2024/MoDL.git. Replace the original segment_predict.py with this new version, in which multiprocessing is used to accelerate the process. User can use image_preprocess.py to extract the images and post_process.py to stitch them together back to a z-stack.
 
+Makes sure that you have the correct folder name.
+
 From past experience, it takes about 40 minutes to process 32 images.
