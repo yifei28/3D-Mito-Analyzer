@@ -20,6 +20,13 @@ unet3d_dataset_builder/
 
 ## 🧠 Key Features
 
+- Supports **.czi** and **.tif** input image formats
+- Extracts **(Z, H, W)** patches from 3D volumes
+- Filters patches based on **positive label ratio**
+- Saves data in **HDF5 (.h5)** format
+- Automatically splits into **train / val / test / test_without_label**
+- Easy to configure via `config.yml`
+
 ## 🗂️ Input Data Structure
 
 Your raw images and labels should be organized in the following folder structure:
@@ -72,14 +79,32 @@ dish_sites:
   Dish 3: [2, 3, 4, 5]
 ```
 
-## 🧠 Key Features
+## 📛 Dataset Naming Convention
 
-- Supports **.czi** and **.tif** input image formats
-- Extracts **(Z, H, W)** patches from 3D volumes
-- Filters patches based on **positive label ratio**
-- Saves data in **HDF5 (.h5)** format
-- Automatically splits into **train / val / test / test_without_label**
-- Easy to configure via `config.yml`
+## 🗂️ Output Dataset Naming Convention
+
+Each generated dataset folder (e.g., `128_64_005`) follows the naming pattern:
+
+```
+<patch_size>_<stride>_<min_positive_ratio_in_thousandths>
+```
+
+### Example:
+- `128_64_005` means:
+  - Patch size = 128
+  - Stride = 64
+  - Minimum positive label ratio = 0.005 (i.e., 0.5%)
+
+These folder names are used as `output_root` in `config.yml` and are where the `.h5` patches and splits are saved:
+
+```
+128_64_005/
+├── All_Sample/        # All extracted patches
+├── train/             # Training patches with labels
+├── val/               # Validation patches with labels
+├── test_with_truth/   # Test patches with labels
+└── test/              # Test patches without labels (for inference)
+```
 
 ## ⚙️ Configuration (`config.yml`)
 
@@ -107,37 +132,36 @@ dish_sites:
 pip install -r requirements.txt
 ```
 
+Example packages:
+
+```
+numpy
+h5py
+tifffile
+aicspylibczi
+matplotlib
+PyYAML
+```
+
 ### 2. Run dataset generation
 
 ```bash
 python main.py --config config.yml
 ```
 
-## 📛 Dataset Naming Convention
-
-- Each patch is saved as:
-  ```
-  <DishName>_Site<SiteNumber>_<PatchIndex>.h5
-  ```
-  Example:
-  ```
-  Dish1_Site2_13.h5
-  ```
-
-- `.h5` file structure:
-  - `raw`: uint8 image patch, shape (Z, H, W)
-  - `label`: binary mask patch, shape (Z, H, W)
-
-- Directory structure (under `output_root`, e.g. `128_64_005/`):
-  ```
-  All_Sample/         # All patches
-  train/              # Training patches (with label)
-  val/                # Validation patches (with label)
-  test_with_truth/    # Test patches (with label)
-  test/               # Test patches (raw only, for model inference)
-  ```
 
 ## 🖼️ Visualize Samples
+
+```bash
+python visual.py --root 128_64_005
+```
+
+This will:
+- Count the number of `.h5` files in each split
+- Randomly pick a sample from `All_Sample/` and open an interactive slice viewer
+
+If the path is invalid or missing, a helpful error will be shown.
+
 
 ```bash
 python visual.py
@@ -159,3 +183,8 @@ MIT License. Free to use and modify for research and educational purposes.
 
 If you encounter bugs or want to suggest improvements, feel free to open an issue or PR.
 
+## ✅ To Do (Optional)
+
+- [ ] Add data augmentation
+- [ ] Add multiprocessing support
+- [ ] Add CLI argument validation
