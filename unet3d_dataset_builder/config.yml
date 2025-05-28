@@ -1,0 +1,12 @@
+patch_size: 256
+stride: 64
+min_positive_ratio: 0.02
+output_root: "256_64_002"
+split_ratio: [0.8, 0.1, 0.1]
+
+dish_sites:
+  Dish 1: [1, 2, 3]
+  Dish 2: [2, 3, 4, 5]
+  Dish 3: [2, 3, 4, 5]
+
+data_root: "../Data"
