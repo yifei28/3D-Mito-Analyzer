@@ -132,17 +132,6 @@ dish_sites:
 pip install -r requirements.txt
 ```
 
-Example packages:
-
-```
-numpy
-h5py
-tifffile
-aicspylibczi
-matplotlib
-PyYAML
-```
-
 ### 2. Run dataset generation
 
 ```bash
