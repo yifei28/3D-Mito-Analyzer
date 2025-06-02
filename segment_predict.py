@@ -1,28 +1,16 @@
 import cv2
 import numpy as np
+import os
 from glob import glob
 from pathlib import Path
 from PIL import Image
+import tensorflow as tf
 from tensorflow.keras.models import *
 from tensorflow.keras.preprocessing.image import load_img, img_to_array, array_to_img
 import shutil
-import time
-import multiprocessing
-
-import os
-# Disable warnings before importing TensorFlow
-os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
-import tensorflow as tf
-tf.get_logger().setLevel('ERROR')  # TensorFlow logger
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)  # For compat.v1 warnings
-
-# Optional: Suppress Python warnings globally
-import warnings
-warnings.filterwarnings('ignore', category=DeprecationWarning)
-warnings.filterwarnings('ignore', category=FutureWarning)
-
+import preprocess
+import postprocess
+import tifffile
 
 def clear_files(folders):
     for root, dirs, files in os.walk(folders):
@@ -61,7 +49,7 @@ def crop_images(input_val):
         for j, crop_box in enumerate(crop_boxes):
             img_cropped = img.crop([crop_box[0] * input_pixel, crop_box[1] * input_pixel, crop_box[2] * input_pixel,
                                     crop_box[3] * input_pixel]).convert("L")
-            img_cropped.save(os.path.join(path_save, f"{i}({j + 1})" + ".tif"))
+            img_cropped.save(os.path.join(path_save, f"{i}({j+1})" + ".tif"))
 
 
 def rename_images(path):
@@ -79,10 +67,11 @@ def test(test_path):
     imgdatas = np.ndarray((len(imgs), output_pixel, output_pixel, 1), dtype=np.uint8)
     for imgname in imgs:
         midname = imgname[imgname.rindex("/") + 1:]
-        img = load_img('../test/' + midname, color_mode='grayscale')
+        img = load_img('/Al_Applications/MoDL/test/' + midname, color_mode='grayscale')
         img = img_to_array(img)
         imgdatas[i] = img
         i += 1
+
     np.save(npy_path + 'imgs_test.npy', imgdatas)
 
     # Convert images to float32 and normalize it
@@ -92,18 +81,15 @@ def test(test_path):
     imgs_test -= mean
 
     # Load the trained model and predict
-    model = load_model('../model/U-RNet+.hdf5')
+    model = load_model('/Al_Applications/MoDL/model/U-RNet+.hdf5')
     imgs_mask_test = model.predict(imgs_test, batch_size=1, verbose=1)
     np.save(npy_path + 'imgs_mask_test.npy', imgs_mask_test)
     imgs_mask_test[imgs_mask_test > 0.7] = 1
     imgs_mask_test[imgs_mask_test <= 0.7] = 0
-    start_time = time.time()
     for i in range(imgs_mask_test.shape[0]):
         img = imgs_mask_test[i]
         img = array_to_img(img)
         img.save(test_save + "bw/%d.tif" % i)
-    end_time = time.time() - start_time
-    print("Time taken to predict and save: ", end_time)
     return model
 
 
@@ -131,7 +117,7 @@ def color_enhance(img):
     r = np.count_nonzero(img_color[:, :, 2])
     return img_color, b, g, r
 
-'''
+
 def process_pseudo(path, pseudo):
     file_list = glob(os.path.join(path, '*'))
     for infile in file_list:
@@ -143,38 +129,6 @@ def process_pseudo(path, pseudo):
         # Merge the color-enhanced image with the binary mask
         merge = cv2.bitwise_and(pseudo_img, bw_img)
         cv2.imwrite(pseudo + f'pseudo{int(i)}.tif', merge)
-'''
-
-
-def process_single_image(args):
-    # Unpack args (now includes test_save explicitly)
-    infile, pseudo_save_path, test_save = args
-    i = Path(infile).stem
-
-    # Read input image
-    test_img = cv2.imread(infile, 1)
-
-    # Process (CPU-bound)
-    pseudo_img, _, _, _ = color_enhance(test_img)
-
-    # Read mask using test_save passed as an argument
-    bw_img = cv2.imread(os.path.join(test_save, f'bw/{int(i)}.tif'))
-
-    # Merge and save
-    merge = cv2.bitwise_and(pseudo_img, bw_img)
-    cv2.imwrite(os.path.join(pseudo_save_path, f'pseudo{int(i)}.tif'), merge)
-
-
-def process_pseudo_parallel(path, pseudo, test_save):
-    file_list = glob(os.path.join(path, '*'))
-
-    # Include test_save in the arguments for each task
-    args_list = [(infile, pseudo, test_save) for infile in file_list]
-
-    # Use 75% of CPU cores
-    num_workers = max(1, int(multiprocessing.cpu_count() * 0.75))
-    with multiprocessing.Pool(num_workers) as pool:
-        pool.map(process_single_image, args_list)
 
 
 def stitch(image_dir, output_dir, positions, order, num_positions):
@@ -190,12 +144,12 @@ def stitch(image_dir, output_dir, positions, order, num_positions):
         new_image.save(os.path.join(output_dir, str(i) + '.tif'))
 
 
-def merge_images(input_path, output_path):
-    num_raw = len(glob('../my_img_data/*'))
+def merge_images(input_path, output_path, img_name, p_value):
+    num_raw = len(glob('/Al_Applications/MoDL/testraw/*'))
     for i in range(num_raw):
-        stitch44 = cv2.imread('../results/results_44/' + input_path + '/' + str(i) + '.tif')
-        stitch34 = cv2.imread('../results/results_34/' + input_path + '/' + str(i) + '.tif')
-        stitch43 = cv2.imread('../results/results_43/' + input_path + '/' + str(i) + '.tif')
+        stitch44 = cv2.imread('/Al_Applications/MoDL/results/results_44/' + input_path + '/' + str(i) + '.tif')
+        stitch34 = cv2.imread('/Al_Applications/MoDL/results/results_34/' + input_path + '/' + str(i) + '.tif')
+        stitch43 = cv2.imread('/Al_Applications/MoDL/results/results_43/' + input_path + '/' + str(i) + '.tif')
 
         stitch44 = cv2.bitwise_not(stitch44)
         stitch34 = cv2.bitwise_not(stitch34)
@@ -206,6 +160,25 @@ def merge_images(input_path, output_path):
         merge2 = cv2.bitwise_not(merge2)
         cv2.imwrite(output_path + '/' + str(i) + '.tif', merge2)
 
+        if p_value == "bw":
+            target_folder = "/Al_Applications/MoDL/processed_images/"
+            assert os.path.exists(target_folder), "Target folder does not exist."
+
+            for attempt in range(z_stack_len):
+                output_name = f"{i + attempt}.tif"
+                output_path_full = os.path.join(target_folder, output_name)
+                if not os.path.exists(output_path_full):
+                    resized_img = cv2.resize(merge2, (final_img_dim, final_img_dim), interpolation=cv2.INTER_AREA)
+                    cv2.imwrite(output_path_full, resized_img)
+                    print(f"Image saved as {output_name} in {target_folder}")
+                    
+                    if attempt == z_stack_len - 1:
+                        final_images_path = "/Al_Applications/MoDL/final_images/"
+                        postprocess.combine_tif_to_zstack(target_folder, final_images_path + img_name)
+                        print(f"Z-stack TIFF created successfully at {final_images_path + img_name}")
+                        clear_files(target_folder)
+                    break
+            
 
 if __name__ == "__main__":
     gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -217,70 +190,83 @@ if __name__ == "__main__":
     else:
         tf.config.set_visible_devices([], 'GPU')
 
+
     # Segment
-    img_paths = "../my_img_data/"
+    img_paths = "/Al_Applications/MoDL/testraw/"
+    tif_paths = "/Al_Applications/MoDL/images/"
     input_pixel = 2048
     output_pixel = 512
+    final_img_dim = 1590
+    z_stack_len = 32
 
-    test_folders = ["44", "43", "34"]
-    for folder in test_folders:
-        path_save = f"../test/test_{folder}/"
-        clear_files(path_save)
-        npy_path = f"../npydata/npydata_{folder}/"
-        clear_files(npy_path)
-        test_save = f"../results/results_{folder}/"
-        clear_files(test_save)
-        pseudo_save = f"../results/results_{folder}/pseudo/"
-        clear_files(pseudo_save)
+    images = glob(os.path.join(tif_paths, "*.tif"))
+    assert len(images) > 0, "No images found in the specified directory."
 
-        crop_images(folder)
-        rename_images(path_save)
-        test(path_save)
-        start_time = time.time()
-        process_pseudo_parallel(path_save, pseudo_save, test_save)
-        end_time = time.time() - start_time
-        print("Time taken to process pseudo images: ", end_time)
+    for image_path in images:
+        img_name = os.path.basename(image_path)
+        print(f"Processing image: {img_name}")
+        stack = tifffile.imread(image_path)
 
-    # Paste patches onto the new image according to the specified positions and order
-    final_results = '../final_results/'
+        for z in range(stack.shape[0]):
+            img = stack[z]
+            tifffile.imwrite(os.path.join(img_paths, f"{z}.tif"), img)
+            preprocess.modify_tif_dim(img_paths, stack[0].shape[0], input_pixel)
 
-    source_results = {'bw': '../final_results/bw', 'pseudo': '../final_results/pseudo'}
-    results_folder = '../results/'
-    start_time = time.time()
-    for category, folder in source_results.items():
-        for filename in os.listdir(folder):
-            if filename.endswith('.tif'):
-                src_file_path = os.path.join(folder, filename)
-                results_filename = f"{filename.split('.')[0]}_{category}.tif"
-                dest_file_path = os.path.join(results_folder, results_filename)
-                shutil.copy(src_file_path, dest_file_path)
-    end_time = time.time() - start_time
-    print("Time taken to copy files: ", end_time)
-    print("Images have been saved to 'final_results' and 'results'")
+            test_folders = ["44", "43", "34"]
+            for folder in test_folders:
+                path_save = f"/Al_Applications/MoDL/test/test_{folder}/"
+                clear_files(path_save)
+                npy_path = f"/Al_Applications/MoDL/npydata/npydata_{folder}/"
+                clear_files(npy_path)
+                test_save = f"/Al_Applications/MoDL/results/results_{folder}/"
+                clear_files(test_save)
+                pseudo_save = f"/Al_Applications/MoDL/results/results_{folder}/pseudo/"
+                clear_files(pseudo_save)
 
-    clear_files(final_results)
-    p_values = ["bw", "pseudo"]
-    positions_44 = [(0, 0), (512, 0), (1024, 0), (1536, 0),
-                    (0, 512), (512, 512), (1024, 512), (1536, 512),
-                    (0, 1024), (512, 1024), (1024, 1024), (1536, 1024),
-                    (0, 1536), (512, 1536), (1024, 1536), (1536, 1536)]
-    order_44 = [0, 8, 9, 10, 11, 12, 13, 14, 15, 1, 2, 3, 4, 5, 6, 7]
+                crop_images(folder)
+                rename_images(path_save)
+                test(path_save)
+                process_pseudo(path_save, pseudo_save)
 
-    positions_43 = [(0, 256), (512, 256), (1024, 256), (1536, 256),
-                    (0, 768), (512, 768), (1024, 768), (1536, 768),
-                    (0, 1280), (512, 1280), (1024, 1280), (1536, 1280)]
-    order_43 = [0, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3]
+            # Paste patches onto the new image according to the specified positions and order
+            final_results = '/Al_Applications/MoDL/final_results/'
+            
+            source_results = {'bw': '/Al_Applications/MoDL/final_results/bw', 'pseudo': '/Al_Applications/MoDL/final_results/pseudo'}
+            results_folder = '/Al_Applications/MoDL/results/'
+            for category, folder in source_results.items():
+                for filename in os.listdir(folder):
+                    if filename.endswith('.tif'):
+                        src_file_path = os.path.join(folder, filename)
+                        results_filename = f"{filename.split('.')[0]}_{category}.tif"
+                        dest_file_path = os.path.join(results_folder, results_filename)
+                        shutil.copy(src_file_path, dest_file_path)
+            print("Images have been saved to 'final_results' and 'results'")
 
-    positions_34 = [(256, 0), (768, 0), (1280, 0),
-                    (256, 512), (768, 512), (1280, 512),
-                    (256, 1024), (768, 1024), (1280, 1024),
-                    (256, 1536), (768, 1536), (1280, 1536)]
-    order_34 = [0, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3]
+            clear_files(final_results)
+            p_values = ["bw", "pseudo"]
+            positions_44 = [(0, 0), (512, 0), (1024, 0), (1536, 0),
+                            (0, 512), (512, 512), (1024, 512), (1536, 512),
+                            (0, 1024), (512, 1024), (1024, 1024), (1536, 1024),
+                            (0, 1536), (512, 1536), (1024, 1536), (1536, 1536)]
+            order_44 = [0, 8, 9, 10, 11, 12, 13, 14, 15, 1, 2, 3, 4, 5, 6, 7]
 
-    for p in p_values:
-        stitch(f"../results/results_44/{p}/", f"../results/results_44/{p}_stitch/", positions_44, order_44, 16)
-        stitch(f"../results/results_43/{p}/", f"../results/results_43/{p}_stitch/", positions_43, order_43, 12)
-        stitch(f"../results/results_34/{p}/", f"../results/results_34/{p}_stitch/", positions_34, order_34, 12)
-        merge_images(f'{p}_stitch', f'../final_results/{p}/')
+            positions_43 = [(0, 256), (512, 256), (1024, 256), (1536, 256),
+                            (0, 768), (512, 768), (1024, 768), (1536, 768),
+                            (0, 1280), (512, 1280), (1024, 1280), (1536, 1280)]
+            order_43 = [0, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3]
 
-    print("All done")
+            positions_34 = [(256, 0), (768, 0), (1280, 0),
+                            (256, 512), (768, 512), (1280, 512),
+                            (256, 1024), (768, 1024), (1280, 1024),
+                            (256, 1536), (768, 1536), (1280, 1536)]
+            order_34 = [0, 4, 5, 6, 7, 8, 9, 10, 11, 1, 2, 3]
+
+            for p in p_values:
+                stitch(f"/Al_Applications/MoDL/results/results_44/{p}/", f"/Al_Applications/MoDL/results/results_44/{p}_stitch/", positions_44, order_44, 16)
+                stitch(f"/Al_Applications/MoDL/results/results_43/{p}/", f"/Al_Applications/MoDL/results/results_43/{p}_stitch/", positions_43, order_43, 12)
+                stitch(f"/Al_Applications/MoDL/results/results_34/{p}/", f"/Al_Applications/MoDL/results/results_34/{p}_stitch/", positions_34, order_34, 12)
+                merge_images(f'{p}_stitch', f'/Al_Applications/MoDL/final_results/{p}/', img_name, p)
+                
+            clear_files(img_paths)
+            print("All done")
+        print(f"Image {img_name} done.")

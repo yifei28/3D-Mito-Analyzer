@@ -11,6 +11,7 @@ def combine_tif_to_zstack(input_dir, output_path):
     # Read all slices into a list
     slices = []
     for filename in tif_files:
+        print(f"Reading file: {filename}")
         filepath = os.path.join(input_dir, filename)
         img = tifffile.imread(filepath)
         slices.append(img)
@@ -23,7 +24,7 @@ def combine_tif_to_zstack(input_dir, output_path):
 
 
 if __name__ == "__main__":
-    input_dir = "../temp_res/"  # Directory containing individual TIFF slices
-    output_path = "../output/Site5_63x_4xMean_Zstack_1-2.tif"  # Output path for the Z-stack TIFF
+    input_dir = "/Al_Applications/MoDL/processed_images/"  # Directory containing individual TIFF slices
+    output_path = "/Al_Applications/MoDL/final_images/Site5_63x_4xMean_Zstack_1-2.tif"  # Output path for the Z-stack TIFF
     combine_tif_to_zstack(input_dir, output_path)
     print("Z-stack TIFF created successfully.")
