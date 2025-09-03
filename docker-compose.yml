@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  mito-analyzer:
+    build: .
+    ports:
+      - "8501:8501"
+    volumes:
+      # Mount host directories to container
+      - ./sample_data/raw:/app/data/raw
+      - ./sample_data/segmented:/app/data/segmented
+      - ./sample_data/results:/app/data/results
+    environment:
+      - PYTHONPATH=/app
+    restart: unless-stopped

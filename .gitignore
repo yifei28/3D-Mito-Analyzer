@@ -1,0 +1,107 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev-debug.log
+
+# Dependency directories
+node_modules/
+
+# Environment variables
+.env
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# TensorFlow and ML models
+*.h5
+*.pb
+*.ckpt
+*.meta
+*.index
+*.data-*
+checkpoints/
+saved_models/
+models/
+*.pkl
+*.joblib
+
+# MoDL specific model files and virtual environments
+MoDL/*/saved_models/
+MoDL/*/checkpoints/
+MoDL/*/models/
+MoDL/venv/
+MoDL/*/venv/
+
+# Large files in MoDL (over ~50MB)
+MoDL/**/*.zip
+MoDL/**/*.tar
+MoDL/**/*.tar.gz
+MoDL/**/dataset/
+MoDL/**/datasets/
+MoDL/**/data/
+MoDL/**/*dataset*/
+MoDL/**/*.weights
+MoDL/**/*.hdf5
+MoDL/model/
+MoDL/images/
+MoDL/final_images/
+MoDL/**/Site*.tif
+
+# Large TIFF files
+data/raw/*.tiff
+data/raw/*.tif
+data/segmented/*.tiff 
+data/segmented/*.tif
+
+# Job persistence files
+data/jobs/*.json
+data/temp/*
+
+# Streamlit
+.streamlit/
+
+# OS specific
+.DS_Store
+Thumbs.db

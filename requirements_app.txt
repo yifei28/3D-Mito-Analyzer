@@ -1,0 +1,24 @@
+# Web Framework
+streamlit>=1.48.0
+
+# TensorFlow for MoDL segmentation
+tensorflow==2.15.0
+
+# Core Scientific Computing
+numpy>=1.19.3,<2.0
+pandas>=1.3.0
+scipy>=1.12.0
+
+# Image Processing
+tifffile>=2024.2.12
+scikit-image>=0.22.0
+Pillow>=7.1.0
+opencv-python>=4.9.0.80
+
+# Visualization
+matplotlib>=3.8.3
+plotly>=5.13.0
+
+# Additional ML/Data dependencies for analysis
+h5py>=3.8.0
+pyyaml>=6.0

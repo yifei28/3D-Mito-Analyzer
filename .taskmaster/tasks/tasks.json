@@ -1,0 +1,276 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Setup Project Structure and Dependencies",
+        "description": "Complete remaining project setup tasks including git initialization, dependency updates, and configuration",
+        "status": "in-progress",
+        "dependencies": [],
+        "priority": "high",
+        "details": "Complete the remaining setup tasks: 1) Initialize git repository with .gitignore for Python, TensorFlow models, and large TIFF files, 2) Update requirements.txt with latest Streamlit version (1.48.0+) and ensure all dependencies have proper version pinning, 3) Create missing data/jobs/ directory for job persistence, 4) Set up .env file from .env.example template with proper configuration variables, 5) Add TensorFlow dependencies if missing from requirements",
+        "testStrategy": "Verify git repository is initialized with proper .gitignore, run pip install -r requirements.txt successfully, confirm all directories exist including data/jobs/, test .env file is properly configured, confirm import statements work for all dependencies including updated Streamlit version",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Initialize git repository with .gitignore",
+            "description": "Set up git repository and create comprehensive .gitignore file",
+            "status": "done",
+            "dependencies": [],
+            "details": "Run git init to initialize repository. Create .gitignore with entries for: Python (__pycache__/, *.pyc, .env), TensorFlow models (*.h5, *.pb, checkpoints/), large TIFF files (*.tiff, *.tif in data/raw/), job files (data/jobs/*.json), and common IDE files",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Update requirements.txt with latest versions",
+            "description": "Update Streamlit to 1.48.0+ and ensure proper version pinning",
+            "status": "done",
+            "dependencies": [],
+            "details": "Update streamlit to >=1.48.0, verify tensorflow==2.15.0, ensure all other dependencies have proper version pinning: tifffile, scikit-image, scipy, matplotlib, pandas, numpy, opencv-python. Add any missing TensorFlow-related dependencies",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Create data/jobs/ directory",
+            "description": "Create missing directory for job persistence storage",
+            "status": "done",
+            "dependencies": [],
+            "details": "Create data/jobs/ directory if it doesn't exist. This directory will store job status JSON files for persistence across app restarts",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Set up .env file from template",
+            "description": "Create .env file with proper configuration variables",
+            "status": "done",
+            "dependencies": [],
+            "details": "Copy .env.example to .env if template exists, or create new .env file with necessary configuration variables for the application. Include settings for data paths, model paths, and any other environment-specific configurations",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Create Core Application Architecture",
+        "description": "Build the main Streamlit application with navigation and layout structure",
+        "details": "Create app.py with st.set_page_config(page_title='Mitochondria Analyzer', layout='wide'). Implement sidebar navigation with st.sidebar.radio for 'Analysis' and 'Segmentation' tabs. Use st.tabs() for sub-navigation within each main section. Create placeholder containers for each workflow. Implement session state management for maintaining UI state across reruns. Add custom CSS with st.markdown for professional styling. Include header with project title and description.",
+        "testStrategy": "Run streamlit app and verify navigation works, tabs switch correctly, layout is responsive, session state persists across interactions, and custom styling is applied",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Implement File Browser Component",
+        "description": "Create a file browser component for navigating mounted volumes instead of file uploads",
+        "details": "Create components/file_browser.py with functions to list files in mounted directories, filter by file extensions (.tif, .tiff), display file metadata (size, modified date), and support multi-file selection. Use pathlib for path operations and os.stat() for file metadata. Implement breadcrumb navigation for directory traversal. Add search functionality with glob patterns. Return selected file paths as absolute paths for downstream processing. Handle permission errors gracefully.",
+        "testStrategy": "Test with various directory structures, verify TIFF file filtering works, ensure file metadata displays correctly, test multi-selection functionality, and confirm error handling for inaccessible directories",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Create Analysis Workflow Wrapper",
+        "description": "Build a wrapper around the existing MitoNetworkAnalyzer class for Streamlit integration",
+        "details": "Create workflows/analysis.py with AnalysisWorkflow class that wraps MitoNetworkAnalyzer. Implement run_analysis(file_path, xRes, yRes, zRes, zDepth) method that validates parameters, instantiates MitoNetworkAnalyzer, and returns structured results dict with keys: network_count, total_volume, volume_distribution, labeled_image, largest_network_id, processing_time. Add parameter validation for resolution values (must be positive floats). Include try-except blocks for memory errors, file loading errors, and processing failures. Add logging with Python logging module for debugging.",
+        "testStrategy": "Test with sample segmented TIFF files from data/segmented/, verify correct network counting and volume calculations, test error handling with invalid files, confirm results match direct MitoNetworkAnalyzer usage",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Build Visualization Components",
+        "description": "Create reusable Streamlit components for displaying mitochondrial analysis results",
+        "details": "Create components/visualization.py with: display_summary_metrics() using st.metric() for network count, total volume, avg network size; plot_volume_distribution() using matplotlib histogram with customizable bins; show_network_slices() for interactive slice viewing with st.slider(); display_analysis_table() using st.dataframe() for detailed network statistics. Add plot customization options (colors, labels, figure size). Implement caching with @st.cache_data for expensive computations. Handle edge cases like single network or no networks found.",
+        "testStrategy": "Test with various analysis result formats including empty results, single network, and multiple networks, verify plots render correctly in Streamlit, ensure interactive features work smoothly",
+        "priority": "high",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Implement Results Display in Analysis Tab",
+        "description": "Connect file selection to analysis workflow and display results in the analysis tab",
+        "details": "Update app.py analysis tab to: display file browser for segmented directory, add parameter input fields for xRes, yRes, zRes with defaults (0.1, 0.1, 0.3), implement 'Run Analysis' button with st.button(), show spinner during processing with st.spinner(), display results using visualization components in organized columns/expanders. Add CSV export button using st.download_button() with pandas DataFrame. Implement result caching in session state to avoid reprocessing. Show processing time and file information in sidebar.",
+        "testStrategy": "End-to-end test of selecting files, setting parameters, running analysis, viewing all visualization types, exporting results to CSV, and verifying cached results work correctly",
+        "priority": "high",
+        "dependencies": [
+          3,
+          4,
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Create Background Job Manager",
+        "description": "Build a thread-based job management system for long-running tasks",
+        "details": "Create workflows/job_manager.py with JobManager singleton class using threading. Implement: submit_job(job_type, params, callback) returning unique job_id; job queue with collections.deque; worker threads pool (max 2 for GPU constraint); thread-safe status updates with threading.Lock; get_job_status(job_id) returning dict with status, progress, error info; cancel_job(job_id) with graceful shutdown. Use uuid.uuid4() for job IDs. Implement job state machine: queued -> running -> completed/failed/cancelled. Add progress callback support for UI updates.",
+        "testStrategy": "Test concurrent job submission, verify thread safety with multiple simultaneous operations, test job cancellation during execution, ensure proper cleanup of completed jobs",
+        "priority": "medium",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Add Job Status Tracking and Persistence",
+        "description": "Implement persistent job status storage and recovery",
+        "details": "Create utils/job_persistence.py with JSON-based persistence in data/jobs/. Implement: save_job_status() writing to {job_id}.json with atomic writes; load_job_status() with error handling for corrupt files; cleanup_old_jobs() removing files older than 7 days using os.stat().st_mtime; get_job_history() returning list of all jobs sorted by timestamp. Add job metadata: start_time, end_time, input_file, output_file, parameters, error_trace. Implement auto-save on status changes using observer pattern. Include job recovery on app restart to resume interrupted jobs.",
+        "testStrategy": "Test job persistence across app restarts, verify cleanup removes old files correctly, test recovery of interrupted jobs, ensure atomic writes prevent corruption",
+        "priority": "medium",
+        "dependencies": [
+          7
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Implement Progress Bars and Job Queue UI",
+        "description": "Create UI components for displaying job progress and queue status",
+        "details": "Create components/progress.py with: job_queue_dashboard() showing all jobs in a table with status icons; progress_bar(job_id) using st.progress() with percentage and time remaining; job_controls(job_id) with cancel/retry buttons; auto_refresh_container() using st.empty() and time.sleep() for updates. Implement estimated time calculation based on file size and historical data. Add color coding: blue=queued, yellow=running, green=completed, red=failed. Use st.rerun() for periodic updates every 2 seconds when jobs are active.",
+        "testStrategy": "Test progress updates during job execution, verify cancel/retry functionality, ensure UI updates without flickering, test with multiple concurrent jobs",
+        "priority": "medium",
+        "dependencies": [
+          7,
+          8
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Create Segmentation Workflow Wrapper",
+        "description": "Adapt the existing MoDL segmentation code for the job system",
+        "details": "Create workflows/segmentation.py adapting MoDL/MoDL_seg/segment_predict.py. Implement SegmentationWorkflow class with: run_segmentation(input_path, output_dir, progress_callback) method; automatic z-stack detection from original code; progress reporting at each slice processing (0-100%); GPU memory management with tf.config.experimental.set_memory_growth(); error handling for OOM and invalid files. Output naming convention: {original_name}_segmented.tif. Add metadata JSON alongside output with processing parameters and timing info.",
+        "testStrategy": "Test with sample raw TIFF files of various sizes, verify progress reporting accuracy, test GPU memory limits, ensure output files are valid and correctly named",
+        "priority": "medium",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 11,
+        "title": "Integrate MoDL with Background Job System",
+        "description": "Connect MoDL segmentation to the job manager for background processing",
+        "details": "Update JobManager to support 'segmentation' job type. Implement: job executor that instantiates SegmentationWorkflow; progress forwarding from MoDL to job status; GPU queue management (max 1 segmentation job on GPU); resource cleanup with tf.keras.backend.clear_session(); timeout handling for stuck jobs (45 min limit). Add segmentation-specific job methods: submit_segmentation_job(), get_segmentation_output_path(). Implement job chaining to auto-trigger analysis after segmentation completion.",
+        "testStrategy": "Test complete segmentation job lifecycle, verify GPU is properly released between jobs, test timeout scenarios, ensure job chaining works correctly",
+        "priority": "medium",
+        "dependencies": [
+          7,
+          8,
+          9,
+          10
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 12,
+        "title": "Add Model Caching and GPU Optimization",
+        "description": "Implement TensorFlow model caching and GPU memory management",
+        "details": "Create workflows/model_cache.py with ModelCache singleton. Implement: load_model() with tf.keras.models.load_model() and caching; warm_cache() for startup model loading; GPU detection with tf.config.list_physical_devices('GPU'); memory limit setting with tf.config.experimental.set_virtual_device_configuration(); CPU fallback when GPU unavailable. Add model versioning support for updates. Implement memory profiling with tf.profiler for optimization. Cache eviction policy when memory pressure detected.",
+        "testStrategy": "Test model loading performance improvement with caching, verify GPU memory limits are respected, test CPU fallback functionality, measure memory usage patterns",
+        "priority": "low",
+        "dependencies": [
+          10
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 13,
+        "title": "Implement Export Functionality",
+        "description": "Create comprehensive export options for all analysis results",
+        "details": "Create components/export.py with: export_to_csv() converting analysis results to pandas DataFrame with network_id, volume, surface_area columns; export_plots_to_pdf() using matplotlib.backends.backend_pdf for multi-page PDF; create_zip_bundle() packaging segmented images with results using zipfile; generate_report() creating formatted PDF with reportlab including summary, plots, and metadata. Add batch export for multiple analyses. Implement progress indication for large exports. All exports use st.download_button() with appropriate MIME types.",
+        "testStrategy": "Test all export formats with various result types, verify PDF generation with plots, test ZIP creation with large files, ensure downloads work across browsers",
+        "priority": "low",
+        "dependencies": [
+          5,
+          6
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Create File Management Utilities",
+        "description": "Build utilities for managing files and disk space",
+        "details": "Create utils/file_manager.py with: get_directory_size() using os.walk() and os.path.getsize(); cleanup_old_files() with configurable age threshold and file patterns; monitor_disk_space() using shutil.disk_usage(); organize_files() moving files to year-month subdirectories. Implement FileCleanupPolicy class with size and age based rules. Add important file protection with .keep files. Create backup_results() using shutil for critical data. Include restore functionality from backups.",
+        "testStrategy": "Test cleanup policies with test files, verify disk monitoring accuracy, test file organization maintains references, ensure protected files aren't deleted",
+        "priority": "low",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "Add Comprehensive Error Handling",
+        "description": "Implement robust error handling throughout the application",
+        "details": "Implement custom exception classes in utils/exceptions.py: FileNotFoundError, InvalidParameterError, ProcessingError, GPUError. Add input validation decorators for parameter checking. Create error_handler decorator with logging and user-friendly messages. Implement graceful degradation for non-critical features. Add comprehensive logging with rotating file handler. Create utils/validators.py for input validation functions. Include stack trace capture for debugging while showing simple messages to users.",
+        "testStrategy": "Test error scenarios including invalid files, out of memory, invalid parameters, GPU errors. Verify error messages are helpful and logging captures sufficient detail",
+        "priority": "medium",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 16,
+        "title": "Test Complete Workflows",
+        "description": "Perform comprehensive end-to-end testing of all workflows",
+        "details": "Create tests/test_workflows.py with pytest framework. Implement: test fixtures with sample TIFF files; test_analysis_workflow() covering file selection to export; test_segmentation_workflow() from submission to completion; test_concurrent_jobs() with multiple operations; performance benchmarks measuring processing times; stress tests with 2GB files. Create synthetic test data generator for various mitochondrial patterns. Document performance baselines. Add integration tests for job recovery scenarios.",
+        "testStrategy": "Execute full test suite with pytest, measure code coverage >80%, document performance metrics, create test report with recommendations",
+        "priority": "medium",
+        "dependencies": [
+          6,
+          11,
+          13
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 17,
+        "title": "Optimize Docker Setup",
+        "description": "Finalize Docker configuration and create comprehensive documentation",
+        "details": "Create multi-stage Dockerfile: builder stage for dependencies, runtime stage with minimal footprint. Add docker-compose.yml with volume mounts for /data/raw and /data/segmented. Include NVIDIA runtime configuration for GPU support. Create entrypoint script for initialization. Write README.md with: quick start, configuration options, volume mount guide, GPU setup, troubleshooting. Add environment variables for MODEL_PATH, DATA_PATH, LOG_LEVEL. Create .dockerignore for build optimization. Include health check endpoint.",
+        "testStrategy": "Build and test Docker image on Linux/Mac/Windows, verify GPU passthrough with nvidia-docker, test volume permissions, validate all documentation steps",
+        "priority": "low",
+        "dependencies": [
+          16
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-09-03T05:53:09.650Z",
+      "updated": "2025-09-03T06:08:39.495Z",
+      "description": "Tasks for master context"
+    }
+  }
+}
