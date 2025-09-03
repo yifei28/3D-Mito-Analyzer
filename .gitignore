@@ -89,6 +89,23 @@ MoDL/images/
 MoDL/final_images/
 MoDL/**/Site*.tif
 
+# MoDL output and temporary directories
+MoDL/deform/
+MoDL/final_results/
+MoDL/npydata/
+MoDL/results/
+MoDL/temp_jobs/
+MoDL/test/
+
+# Main project image directories
+images/
+data/raw/
+data/segmented/
+data/temp/
+
+# Research papers and documentation (large PDFs)
+papers/
+
 # Large TIFF files
 data/raw/*.tiff
 data/raw/*.tif
