@@ -1,0 +1,96 @@
+{
+  "metadata_version": "2.0",
+  "generation_timestamp": "2025-09-23T20:29:13.272004",
+  "processing": {
+    "start_timestamp": "2025-09-23T20:29:13.271621",
+    "end_timestamp": "2025-09-23T20:29:13.272008",
+    "duration_seconds": 0.0002586841583251953,
+    "batch_size": 1,
+    "model_path": null,
+    "processing_mode": "modl_segmentation"
+  },
+  "input": {
+    "original_shape": [
+      1,
+      2048,
+      2048
+    ],
+    "input_path": "/Users/yifei/mito-analyzer/data/raw/Site1_63x_2xMean_Zstack_2-3-1.tif",
+    "z_stack_info": {
+      "total_slices": 1,
+      "processed_slices": 1,
+      "slice_dimensions": [
+        2048,
+        2048
+      ]
+    },
+    "file_size_mb": 7.233255386352539
+  },
+  "output": {
+    "final_shape": [
+      1,
+      1590,
+      1590
+    ],
+    "data_type": "uint8",
+    "memory_usage_mb": 2.4109840393066406,
+    "unique_values": 1
+  },
+  "hardware": {
+    "current_type": "cpu",
+    "original_type": "cpu",
+    "device_name": "CPU (10 cores, 24.0GB RAM)",
+    "memory_gb": 0.0,
+    "fallback_occurred": false,
+    "fallback_events": [],
+    "cpu_count": 10,
+    "batch_size": 2,
+    "system_memory": {
+      "total_gb": 24.0,
+      "available_gb": 6.7125244140625,
+      "percent_used": 72.0,
+      "used_gb": 6.901031494140625
+    }
+  },
+  "performance": {
+    "processing_duration_seconds": 0.0002586841583251953,
+    "slices_per_second": 3865.7179723502304,
+    "throughput_mb_per_second": 9320.184331797234,
+    "z_slices_processed": 1,
+    "batch_processing_info": {
+      "total_batches": 1,
+      "batch_size_used": 1,
+      "patterns_per_slice": "three_pattern_crop"
+    },
+    "memory_efficiency": {
+      "output_size_mb": 2.4109840393066406,
+      "memory_per_slice_mb": 2.4109840393066406
+    }
+  },
+  "tensorflow": {
+    "version": "2.15.0",
+    "gpu_available": false,
+    "physical_devices": {
+      "cpu": 1,
+      "gpu": 0
+    },
+    "mixed_precision_enabled": false,
+    "memory_growth_enabled": "unknown"
+  },
+  "parameters": {
+    "model_configuration": {
+      "model_path": null,
+      "model_exists": false,
+      "inference_mode": "tensorflow_keras"
+    },
+    "preprocessing": {
+      "crop_patterns": "44x44, 43x43, 34x34",
+      "input_scaling": "unknown",
+      "normalization": "unknown"
+    },
+    "postprocessing": {
+      "reconstruction_method": "pattern_stitching",
+      "output_scaling": "unknown"
+    }
+  }
+}

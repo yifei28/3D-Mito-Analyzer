@@ -1,0 +1,29 @@
+{
+  "id": "bc58b808-dbcb-46d0-bdbe-df036924877d",
+  "job_type": "segmentation",
+  "status": "completed",
+  "progress": 100.0,
+  "status_message": "Completed successfully",
+  "error_message": "",
+  "error_trace": "",
+  "created_at": "2025-09-07T00:08:08.145369",
+  "started_at": "2025-09-07T00:08:08.192124",
+  "completed_at": "2025-09-07T00:08:18.357394",
+  "total_time": 10.16527,
+  "input_files": [],
+  "output_files": [],
+  "parameters": {
+    "input_path": "/Users/yifei/mito-analyzer/data/raw/Site1_63x_2xMean_Zstack_2-3.tif",
+    "output_dir": "data/segmented",
+    "force_cpu": false
+  },
+  "result": {
+    "input_path": "/Users/yifei/mito-analyzer/data/raw/Site1_63x_2xMean_Zstack_2-3.tif",
+    "output_path": "data/segmented/Site1_63x_2xMean_Zstack_2-3.tif_segmented.tif",
+    "processing_time": 10.16074013710022,
+    "hardware_mode": "cpu",
+    "total_slices": 45,
+    "successful_slices": 45,
+    "batch_size_used": 2
+  }
+}

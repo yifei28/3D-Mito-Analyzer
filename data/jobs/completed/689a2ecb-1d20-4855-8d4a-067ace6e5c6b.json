@@ -1,0 +1,23 @@
+{
+  "id": "689a2ecb-1d20-4855-8d4a-067ace6e5c6b",
+  "job_type": "segmentation",
+  "status": "failed",
+  "progress": 24.5,
+  "status_message": "Failed: Segmentation failed: Segmentation failed: name 'input_shape' is not defined",
+  "error_message": "Segmentation failed: Segmentation failed: name 'input_shape' is not defined",
+  "error_trace": "Segmentation failed: Segmentation failed: name 'input_shape' is not defined",
+  "created_at": "2025-09-15T22:33:35.205286",
+  "started_at": "2025-09-15T22:33:35.290439",
+  "completed_at": "2025-09-15T22:58:07.556931",
+  "total_time": 1472.266492,
+  "input_files": [],
+  "output_files": [],
+  "parameters": {
+    "input_path": "/Users/yifei/mito-analyzer/data/raw/Site1_63x_2xMean_Zstack_2-3.tif",
+    "output_dir": "data/segmented",
+    "force_cpu": false,
+    "auto_chain_analysis": false,
+    "timeout_minutes": 45.0
+  },
+  "result": null
+}

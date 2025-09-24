@@ -1,0 +1,23 @@
+{
+  "id": "108737bf-b7f0-4e20-99d8-260621821680",
+  "job_type": "segmentation",
+  "status": "queued",
+  "progress": 0.0,
+  "status_message": "",
+  "error_message": "",
+  "error_trace": "",
+  "created_at": "2025-09-15T21:55:41.966967",
+  "started_at": null,
+  "completed_at": null,
+  "total_time": 0.0,
+  "input_files": [],
+  "output_files": [],
+  "parameters": {
+    "input_path": "MoDL/test/test_44/0015.tif",
+    "output_dir": "/tmp/test_output",
+    "force_cpu": true,
+    "auto_chain_analysis": false,
+    "timeout_minutes": 45.0
+  },
+  "result": null
+}

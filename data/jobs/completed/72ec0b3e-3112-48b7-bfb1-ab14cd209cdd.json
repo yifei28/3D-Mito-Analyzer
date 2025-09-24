@@ -1,0 +1,23 @@
+{
+  "id": "72ec0b3e-3112-48b7-bfb1-ab14cd209cdd",
+  "job_type": "segmentation",
+  "status": "failed",
+  "progress": 40.0,
+  "status_message": "Processing slice 13/45 on CPU",
+  "error_message": "Job interrupted by system shutdown",
+  "error_trace": "",
+  "created_at": "2025-09-17T23:40:14.422397",
+  "started_at": "2025-09-17T23:40:14.540708",
+  "completed_at": "2025-09-23T19:18:53.952790",
+  "total_time": 0.0,
+  "input_files": [],
+  "output_files": [],
+  "parameters": {
+    "input_path": "/Users/yifei/mito-analyzer/data/raw/Site1_63x_2xMean_Zstack_2-3.tif",
+    "output_dir": "data/segmented",
+    "force_cpu": false,
+    "auto_chain_analysis": false,
+    "timeout_minutes": 45.0
+  },
+  "result": null
+}

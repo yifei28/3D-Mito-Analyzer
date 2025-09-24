@@ -1,9 +1,18 @@
 import streamlit as st
 import os
 import time
+import pandas as pd
+from datetime import datetime
 from pathlib import Path
 from components.file_browser import display_file_browser, display_file_info
 from components.visualizations import display_complete_analysis_results
+from components.progress import (
+    job_queue_dashboard, 
+    job_progress_bar, 
+    auto_refresh_container,
+    job_history_viewer,
+    test_job_controls
+)
 from workflows.analysis import analysis_workflow
 from workflows.segmentation import segmentation_workflow
 
@@ -329,7 +338,7 @@ def main():
             st.success("Cleanup completed!")
     
     # Main navigation tabs
-    tab1, tab2, tab3 = st.tabs(["🔬 Segmentation", "📊 Analysis", "📁 File Manager"])
+    tab1, tab2, tab3, tab4 = st.tabs(["🔬 Segmentation", "📊 Analysis", "📁 File Manager", "🚀 Job Queue"])
     
     with tab1:
         st.header("Mitochondrial Segmentation Pipeline")
@@ -465,15 +474,18 @@ def main():
                     elif status_info['status'] == 'failed':
                         failed_count += 1
             
-            col_metric1, col_metric2, col_metric3, col_metric4 = st.columns(4)
+            # Display job metrics in 2x2 grid for better spacing
+            col_metric1, col_metric2 = st.columns(2)
             with col_metric1:
-                st.metric("Total Jobs", total_jobs)
+                st.metric("📊 Total Jobs", total_jobs)
             with col_metric2:
-                st.metric("Active", active_count)  
+                st.metric("🔄 Active", active_count)
+            
+            col_metric3, col_metric4 = st.columns(2)  
             with col_metric3:
-                st.metric("Completed", completed_count)
+                st.metric("✅ Completed", completed_count)
             with col_metric4:
-                st.metric("Failed", failed_count)
+                st.metric("❌ Failed", failed_count)
             
             # Detailed job status
             st.subheader("Detailed Job Status")
@@ -645,12 +657,80 @@ def main():
             st.subheader("Analysis Controls")
             
             if selected_segmented_files:
-                # Get resolution parameters from session state
-                resolution_params = st.session_state.get('resolution_params', {
-                    'x_res': 0.0425, 'y_res': 0.0425, 'z_res': 0.16
-                })
+                # Enhanced parameter validation section
+                st.subheader("⚙️ Analysis Parameters")
                 
-                # Z-depth input
+                # Parameter presets
+                preset_options = {
+                    "Custom": {"x_res": 0.0425, "y_res": 0.0425, "z_res": 0.16},
+                    "Confocal Standard": {"x_res": 0.0425, "y_res": 0.0425, "z_res": 0.16},
+                    "Super Resolution": {"x_res": 0.020, "y_res": 0.020, "z_res": 0.10},
+                    "Wide-field Microscopy": {"x_res": 0.065, "y_res": 0.065, "z_res": 0.20}
+                }
+                
+                selected_preset = st.selectbox(
+                    "Parameter Presets",
+                    options=list(preset_options.keys()),
+                    help="Choose from common microscopy parameter presets or select Custom for manual entry"
+                )
+                
+                # Get base parameters from preset or session state
+                if selected_preset != "Custom":
+                    base_params = preset_options[selected_preset]
+                else:
+                    base_params = st.session_state.get('resolution_params', {
+                        'x_res': 0.0425, 'y_res': 0.0425, 'z_res': 0.16
+                    })
+                
+                # Resolution parameters with validation
+                col_param1, col_param2, col_param3 = st.columns(3)
+                
+                with col_param1:
+                    x_res = st.number_input(
+                        "X Resolution (μm/pixel)",
+                        min_value=0.001,
+                        max_value=1.0,
+                        value=base_params['x_res'],
+                        format="%.4f",
+                        help="Pixel size in X direction"
+                    )
+                    # Validation feedback
+                    if x_res > 0.2:
+                        st.warning("⚠️ Unusually large X resolution")
+                    elif x_res < 0.01:
+                        st.info("ℹ️ High resolution X value")
+                
+                with col_param2:
+                    y_res = st.number_input(
+                        "Y Resolution (μm/pixel)",
+                        min_value=0.001,
+                        max_value=1.0,
+                        value=base_params['y_res'],
+                        format="%.4f",
+                        help="Pixel size in Y direction"
+                    )
+                    # Validation feedback
+                    if y_res > 0.2:
+                        st.warning("⚠️ Unusually large Y resolution")
+                    elif y_res < 0.01:
+                        st.info("ℹ️ High resolution Y value")
+                
+                with col_param3:
+                    z_res = st.number_input(
+                        "Z Resolution (μm/slice)",
+                        min_value=0.001,
+                        max_value=2.0,
+                        value=base_params['z_res'],
+                        format="%.3f",
+                        help="Distance between Z slices"
+                    )
+                    # Validation feedback
+                    if z_res > 0.5:
+                        st.warning("⚠️ Large Z slice spacing")
+                    elif z_res < 0.05:
+                        st.info("ℹ️ Fine Z resolution")
+                
+                # Z-depth input with validation
                 z_depth = st.number_input(
                     "Z-stack depth (number of slices)", 
                     min_value=1, 
@@ -659,17 +739,210 @@ def main():
                     help="Number of Z slices in the TIFF stack"
                 )
                 
+                # Z-depth validation
+                if z_depth > 200:
+                    st.warning("⚠️ Very large Z-stack - may require significant memory")
+                elif z_depth < 5:
+                    st.info("ℹ️ Shallow Z-stack - limited 3D analysis")
+                
+                # Resolution consistency check
+                if abs(x_res - y_res) / max(x_res, y_res) > 0.1:
+                    st.warning("⚠️ X and Y resolutions differ significantly - check if this is intentional")
+                
+                # Store validated parameters
+                resolution_params = {
+                    'x_res': x_res,
+                    'y_res': y_res,
+                    'z_res': z_res
+                }
+                
+                # Processing estimates section
+                st.subheader("📊 Processing Estimates")
+                
+                # Calculate estimates for selected files
+                total_size_mb = 0
+                estimated_total_time = 0
+                estimated_peak_memory = 0
+                processing_details = []
+                
+                for file_path in selected_segmented_files:
+                    try:
+                        # Get file size
+                        file_size = file_path.stat().st_size / (1024 * 1024)  # MB
+                        total_size_mb += file_size
+                        
+                        # Estimate processing time (rough heuristic: ~0.5-2 seconds per MB + base overhead)
+                        file_time_estimate = max(5, file_size * 0.8 + 10)  # seconds
+                        estimated_total_time += file_time_estimate
+                        
+                        # Estimate memory usage (image loaded + processing overhead)
+                        # Rough estimate: file_size * 3 (original + processed + temp) + base
+                        file_memory_estimate = (file_size * 3.5 + 200) / 1024  # GB
+                        estimated_peak_memory = max(estimated_peak_memory, file_memory_estimate)
+                        
+                        processing_details.append({
+                            'file': file_path.name,
+                            'size_mb': file_size,
+                            'time_est': file_time_estimate,
+                            'memory_est': file_memory_estimate
+                        })
+                        
+                    except Exception as e:
+                        st.error(f"Could not estimate for {file_path.name}: {e}")
+                
+                # Display overall estimates - each metric in its own row for better spacing
+                st.metric(
+                    "📦 Total Size", 
+                    f"{total_size_mb:.1f} MB",
+                    help="Combined size of all selected files"
+                )
+                
+                st.metric(
+                    "🖼️ Files", 
+                    f"{len(selected_segmented_files)}",
+                    help="Number of files to process"
+                )
+                
+                st.metric(
+                    "⏱️ Est. Time", 
+                    f"{estimated_total_time/60:.1f} min",
+                    help="Estimated total processing time for all files"
+                )
+                
+                st.metric(
+                    "💾 Peak Memory", 
+                    f"{estimated_peak_memory:.1f} GB",
+                    help="Estimated peak memory usage during processing"
+                )
+                
+                # Detailed breakdown in expandable section
+                if len(selected_segmented_files) > 1:
+                    with st.expander("📋 Detailed File Estimates", expanded=False):
+                        for detail in processing_details:
+                            col_file1, col_file2, col_file3, col_file4 = st.columns([2, 1, 1, 1])
+                            with col_file1:
+                                st.write(f"📄 {detail['file']}")
+                            with col_file2:
+                                st.write(f"{detail['size_mb']:.1f} MB")
+                            with col_file3:
+                                st.write(f"{detail['time_est']:.0f}s")
+                            with col_file4:
+                                st.write(f"{detail['memory_est']:.1f} GB")
+                
+                # Warnings for resource-intensive operations
+                if estimated_peak_memory > 8.0:
+                    st.warning("⚠️ **High Memory Usage Expected** - Close other applications and ensure sufficient RAM")
+                elif estimated_peak_memory > 4.0:
+                    st.info("ℹ️ **Moderate Memory Usage** - Monitor system resources during processing")
+                
+                if estimated_total_time > 300:  # 5 minutes
+                    st.warning("⚠️ **Long Processing Time** - Consider processing files in smaller batches")
+                
+                if len(selected_segmented_files) > 10:
+                    st.info("ℹ️ **Large Batch** - Results will be processed sequentially")
+                
+                st.divider()
+                
+                # Cache status check section
+                st.subheader("🔄 Cache Status")
+                
+                cached_files = []
+                fresh_files = []
+                
+                for file_path in selected_segmented_files:
+                    # Check for cached results
+                    cached_result = analysis_workflow.get_cached_result(
+                        str(file_path), 
+                        resolution_params['x_res'], 
+                        resolution_params['y_res'], 
+                        resolution_params['z_res'], 
+                        z_depth
+                    )
+                    
+                    if cached_result and cached_result.get('success'):
+                        cached_files.append({
+                            'path': file_path,
+                            'result': cached_result,
+                            'name': file_path.name
+                        })
+                    else:
+                        fresh_files.append(file_path)
+                
+                # Display cache status
+                if cached_files:
+                    col_cache1, col_cache2 = st.columns([3, 1])
+                    with col_cache1:
+                        st.success(f"🔄 **{len(cached_files)} files have cached results** - Analysis can skip these files")
+                        
+                        # Show cached files in expander
+                        with st.expander(f"📋 Cached Files ({len(cached_files)})", expanded=len(cached_files) <= 3):
+                            for cached_file in cached_files:
+                                result = cached_file['result']
+                                col_cached1, col_cached2, col_cached3 = st.columns([2, 1, 1])
+                                with col_cached1:
+                                    st.write(f"📄 {cached_file['name']}")
+                                with col_cached2:
+                                    st.write(f"🔬 {result['network_count']} networks")
+                                with col_cached3:
+                                    st.write(f"⏱️ {result['processing_time']:.1f}s")
+                    
+                    with col_cache2:
+                        force_reanalyze = st.checkbox(
+                            "🔄 Force Re-analyze All",
+                            value=False,
+                            help="Ignore cache and re-analyze all files"
+                        )
+                else:
+                    st.info("ℹ️ **No cached results found** - All files will be analyzed fresh")
+                    force_reanalyze = False
+                
+                if fresh_files:
+                    st.info(f"🆕 **{len(fresh_files)} files need fresh analysis**")
+                
+                # Analysis options
+                analysis_options = []
+                if cached_files and not force_reanalyze:
+                    analysis_options.append("✅ Use cached results where available")
+                if fresh_files or force_reanalyze:
+                    if force_reanalyze:
+                        analysis_options.append("🔄 Re-analyze all files (ignoring cache)")
+                    else:
+                        analysis_options.append("🆕 Analyze new files only")
+                
+                if analysis_options:
+                    st.write("**Analysis Plan:**")
+                    for option in analysis_options:
+                        st.write(f"  • {option}")
+                
+                st.divider()
+                
                 # Analysis button
                 if st.button("🔍 Run Analysis", type="primary"):
-                    st.info(f"Starting analysis for {len(selected_segmented_files)} file(s)...")
+                    if force_reanalyze:
+                        st.info(f"🔄 Re-analyzing all {len(selected_segmented_files)} file(s) (ignoring cache)...")
+                        files_to_process = selected_segmented_files
+                        # Clear existing cache for these files
+                        analysis_workflow.clear_cache()
+                    else:
+                        files_to_process = fresh_files
+                        if cached_files:
+                            st.info(f"🔄 Using {len(cached_files)} cached results, analyzing {len(fresh_files)} fresh files...")
+                        else:
+                            st.info(f"🆕 Analyzing {len(files_to_process)} file(s)...")
                     
                     # Initialize session state for results
                     if 'analysis_results' not in st.session_state:
                         st.session_state.analysis_results = {}
                     
-                    # Process each selected file
-                    for file_path in selected_segmented_files:
-                        st.write(f"**Processing:** {file_path.name}")
+                    # Add cached results to session state
+                    if not force_reanalyze:
+                        for cached_file in cached_files:
+                            st.session_state.analysis_results[str(cached_file['path'])] = cached_file['result']
+                            st.success(f"🔄 Using cached result for {cached_file['name']}")
+                    
+                    # Process files that need fresh analysis
+                    for file_path in files_to_process:
+                        st.write(f"**🔬 Processing:** {file_path.name}")
                         
                         # Run analysis using the workflow
                         result = analysis_workflow.run_analysis(
@@ -686,9 +959,16 @@ def main():
                         
                         # Display immediate summary
                         if result['success']:
-                            st.success(analysis_workflow.format_results_summary(result))
+                            st.success(f"✅ {analysis_workflow.format_results_summary(result)}")
                         else:
-                            st.error(f"Analysis failed: {result['error_message']}")
+                            st.error(f"❌ Analysis failed for {file_path.name}: {result['error_message']}")
+                    
+                    # Final summary
+                    if files_to_process:
+                        st.success(f"🎉 Analysis complete! Processed {len(files_to_process)} files.")
+                    
+                    if cached_files and not force_reanalyze:
+                        st.info(f"📊 Total results available: {len(selected_segmented_files)} files ({len(cached_files)} from cache + {len(files_to_process)} fresh)")
             
             # Analysis results display
             st.subheader("📊 Analysis Results")
@@ -723,7 +1003,107 @@ def main():
                     # Use the new comprehensive visualization component
                     display_complete_analysis_results(result)
                 
-                # Quick overview for all files
+                # Export functionality - available for any results
+                if st.session_state.analysis_results:
+                    st.subheader("📥 Export Results")
+                    col_export1, col_export2 = st.columns(2)
+                    
+                    with col_export1:
+                        if st.button("📊 Export Overview to CSV"):
+                            import pandas as pd  # Import pandas within the callback scope
+                            
+                            @st.cache_data
+                            def convert_df_to_csv(df):
+                                return df.to_csv(index=False).encode('utf-8')
+                            
+                            # Create overview data for export
+                            overview_data = []
+                            for file_path, result in st.session_state.analysis_results.items():
+                                file_name = Path(file_path).name
+                                overview_data.append({
+                                    "File": file_name,
+                                    "Status": "✅ Success" if result['success'] else "❌ Failed",
+                                    "Networks": str(result.get('network_count', 0)) if result['success'] else "N/A",
+                                    "Total Volume (μm³)": f"{result.get('total_volume', 0):.2f}" if result['success'] else "N/A",
+                                    "Time (s)": f"{result.get('processing_time', 0):.1f}" if result['success'] else "N/A"
+                                })
+                            
+                            df = pd.DataFrame(overview_data)
+                            csv_data = convert_df_to_csv(df)
+                            
+                            st.download_button(
+                                label="⬇️ Download Overview CSV",
+                                data=csv_data,
+                                file_name=f"mitochondria_analysis_overview_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                                mime="text/csv"
+                            )
+                    
+                    with col_export2:
+                        if st.button("📋 Export Detailed Results to CSV"):
+                            import pandas as pd  # Import pandas within the callback scope
+                            # Create comprehensive export data
+                            detailed_export_data = []
+                            
+                            for file_path, result in st.session_state.analysis_results.items():
+                                file_name = Path(file_path).name
+                                base_row = {
+                                    "file_name": file_name,
+                                    "file_path": file_path,
+                                    "analysis_success": result['success'],
+                                    "processing_time_seconds": result.get('processing_time', 0),
+                                    "network_count": result.get('network_count', 0) if result['success'] else None,
+                                    "total_volume_um3": result.get('total_volume', 0) if result['success'] else None,
+                                    "error_message": result.get('error_message', '') if not result['success'] else '',
+                                    "x_resolution_um": result['parameters']['xRes'] if result['success'] else None,
+                                    "y_resolution_um": result['parameters']['yRes'] if result['success'] else None,
+                                    "z_resolution_um": result['parameters']['zRes'] if result['success'] else None,
+                                    "z_depth_slices": result['parameters']['zDepth'] if result['success'] else None,
+                                }
+                                
+                                # Add volume statistics if available
+                                if result['success'] and 'volume_statistics' in result:
+                                    vol_stats = result['volume_statistics']
+                                    base_row.update({
+                                        "mean_volume_um3": vol_stats['mean_volume'],
+                                        "median_volume_um3": vol_stats['median_volume'],
+                                        "std_volume_um3": vol_stats['std_volume'],
+                                        "min_volume_um3": vol_stats['min_volume'],
+                                        "max_volume_um3": vol_stats['max_volume'],
+                                    })
+                                
+                                # Add z-spread analysis if available
+                                if result['success'] and 'z_spread_analysis' in result:
+                                    z_stats = result['z_spread_analysis']
+                                    base_row.update({
+                                        "multi_slice_networks": z_stats['networks_spanning_multiple_slices'],
+                                        "single_slice_networks": z_stats['single_slice_networks'],
+                                        "average_z_span_slices": z_stats['average_z_span'],
+                                    })
+                                
+                                # Add memory usage if available
+                                if result['success'] and 'memory_usage' in result and isinstance(result['memory_usage'], dict):
+                                    mem_info = result['memory_usage']
+                                    if 'estimated_peak_gb' in mem_info:
+                                        base_row["estimated_peak_memory_gb"] = mem_info['estimated_peak_gb']
+                                
+                                detailed_export_data.append(base_row)
+                            
+                            # Create detailed DataFrame with proper encoding
+                            @st.cache_data
+                            def convert_detailed_df_to_csv(df):
+                                return df.to_csv(index=False).encode('utf-8')
+                            
+                            df_detailed = pd.DataFrame(detailed_export_data)
+                            csv_detailed = convert_detailed_df_to_csv(df_detailed)
+                            
+                            st.download_button(
+                                label="⬇️ Download Detailed CSV",
+                                data=csv_detailed,
+                                file_name=f"mitochondria_analysis_detailed_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                                mime="text/csv"
+                            )
+                
+                # Quick overview for all files - show table for multiple files  
                 if len(st.session_state.analysis_results) > 1:
                     st.subheader("🔍 Quick Overview - All Files")
                     
@@ -798,6 +1178,29 @@ def main():
         # Download section
         st.subheader("⬇️ Downloads")
         st.info("Download links for completed jobs will appear here")
+    
+    with tab4:
+        st.header("Job Queue Dashboard")
+        st.info("Monitor and control all running jobs across segmentation and analysis workflows")
+        
+        # Auto-refresh controls
+        auto_refresh_container(refresh_interval=2)
+        
+        # Main job queue dashboard
+        job_queue_dashboard()
+        
+        st.divider()
+        
+        # Job history viewer
+        st.subheader("📚 Job History")
+        job_history_viewer()
+        
+        st.divider()
+        
+        # Test job controls for development
+        if st.checkbox("🧪 Show Test Controls", help="Development tools for testing job functionality"):
+            st.subheader("🛠️ Test Job Controls")
+            test_job_controls()
 
 if __name__ == "__main__":
     main()

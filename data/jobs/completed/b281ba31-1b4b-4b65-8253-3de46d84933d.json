@@ -1,0 +1,21 @@
+{
+  "id": "b281ba31-1b4b-4b65-8253-3de46d84933d",
+  "job_type": "segmentation",
+  "status": "failed",
+  "progress": 0.0,
+  "status_message": "Failed: name 'os' is not defined",
+  "error_message": "name 'os' is not defined",
+  "error_trace": "name 'os' is not defined",
+  "created_at": "2025-09-06T23:58:26.523971",
+  "started_at": "2025-09-06T23:58:26.572902",
+  "completed_at": "2025-09-06T23:58:26.575300",
+  "total_time": 0.002398,
+  "input_files": [],
+  "output_files": [],
+  "parameters": {
+    "input_path": "/Users/yifei/mito-analyzer/data/raw/Site1_63x_2xMean_Zstack_2-3.tif",
+    "output_dir": "data/segmented",
+    "force_cpu": false
+  },
+  "result": null
+}

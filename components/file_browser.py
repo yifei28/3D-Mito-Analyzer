@@ -342,9 +342,9 @@ def display_file_info(file_path: Path):
             </h4>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div>
+                <div style="grid-column: 1 / -1;">
                     <strong style="color: var(--dark-gray);">Filename:</strong><br>
-                    <span style="color: var(--accent-teal); font-family: monospace;">{file_path.name}</span>
+                    <span style="color: var(--accent-teal); font-family: monospace; word-break: break-all; font-size: 0.9rem;">{file_path.name}</span>
                 </div>
                 
                 <div>
@@ -364,7 +364,7 @@ def display_file_info(file_path: Path):
                 
                 <div>
                     <strong style="color: var(--dark-gray);">Modified:</strong><br>
-                    <span style="color: var(--medium-gray); font-size: 0.9rem;">{modified_time}</span>
+                    <span style="color: var(--dark-gray); font-size: 0.85rem; font-family: monospace;">{modified_time}</span>
                 </div>
                 
                 <div>

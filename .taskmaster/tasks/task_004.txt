@@ -1,0 +1,11 @@
+# Task ID: 4
+# Title: Create Analysis Workflow Wrapper
+# Status: done
+# Dependencies: 1
+# Priority: high
+# Description: Build a wrapper around the existing MitoNetworkAnalyzer class for Streamlit integration
+# Details:
+Create workflows/analysis.py with AnalysisWorkflow class that wraps MitoNetworkAnalyzer. Implement run_analysis(file_path, xRes, yRes, zRes, zDepth) method that validates parameters, instantiates MitoNetworkAnalyzer, and returns structured results dict with keys: network_count, total_volume, volume_distribution, labeled_image, largest_network_id, processing_time. Add parameter validation for resolution values (must be positive floats). Include try-except blocks for memory errors, file loading errors, and processing failures. Add logging with Python logging module for debugging.
+
+# Test Strategy:
+Test with sample segmented TIFF files from data/segmented/, verify correct network counting and volume calculations, test error handling with invalid files, confirm results match direct MitoNetworkAnalyzer usage

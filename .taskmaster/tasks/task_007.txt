@@ -1,0 +1,11 @@
+# Task ID: 7
+# Title: Create Background Job Manager
+# Status: done
+# Dependencies: 1
+# Priority: medium
+# Description: Build a thread-based job management system for long-running tasks
+# Details:
+Create workflows/job_manager.py with JobManager singleton class using threading. Implement: submit_job(job_type, params, callback) returning unique job_id; job queue with collections.deque; worker threads pool (max 2 for GPU constraint); thread-safe status updates with threading.Lock; get_job_status(job_id) returning dict with status, progress, error info; cancel_job(job_id) with graceful shutdown. Use uuid.uuid4() for job IDs. Implement job state machine: queued -> running -> completed/failed/cancelled. Add progress callback support for UI updates.
+
+# Test Strategy:
+Test concurrent job submission, verify thread safety with multiple simultaneous operations, test job cancellation during execution, ensure proper cleanup of completed jobs

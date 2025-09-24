@@ -1,0 +1,11 @@
+# Task ID: 3
+# Title: Implement File Browser Component
+# Status: done
+# Dependencies: 1
+# Priority: high
+# Description: Create a file browser component for navigating mounted volumes instead of file uploads
+# Details:
+Create components/file_browser.py with functions to list files in mounted directories, filter by file extensions (.tif, .tiff), display file metadata (size, modified date), and support multi-file selection. Use pathlib for path operations and os.stat() for file metadata. Implement breadcrumb navigation for directory traversal. Add search functionality with glob patterns. Return selected file paths as absolute paths for downstream processing. Handle permission errors gracefully.
+
+# Test Strategy:
+Test with various directory structures, verify TIFF file filtering works, ensure file metadata displays correctly, test multi-selection functionality, and confirm error handling for inaccessible directories

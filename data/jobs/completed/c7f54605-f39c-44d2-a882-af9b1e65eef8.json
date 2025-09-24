@@ -1,0 +1,42 @@
+{
+  "id": "c7f54605-f39c-44d2-a882-af9b1e65eef8",
+  "job_type": "segmentation",
+  "status": "completed",
+  "progress": 100.0,
+  "status_message": "Completed successfully",
+  "error_message": "",
+  "error_trace": "",
+  "created_at": "2025-09-23T20:13:24.187171",
+  "started_at": "2025-09-23T20:13:24.187905",
+  "completed_at": "2025-09-23T20:13:46.096933",
+  "total_time": 21.909028,
+  "input_files": [],
+  "output_files": [],
+  "parameters": {
+    "input_path": "/Users/yifei/mito-analyzer/data/raw/Site1_63x_2xMean_Zstack_2-3-1.tif",
+    "output_dir": "data/segmented",
+    "force_cpu": false,
+    "auto_chain_analysis": false,
+    "timeout_minutes": 45.0
+  },
+  "result": {
+    "input_path": "/Users/yifei/mito-analyzer/data/raw/Site1_63x_2xMean_Zstack_2-3-1.tif",
+    "output_path": "data/segmented/Site1_63x_2xMean_Zstack_2-3-1.tif_segmented_20250923_201346.tif",
+    "processing_time": 21.853055000305176,
+    "hardware_mode": "cpu",
+    "batch_size_used": 1,
+    "memory_limit_applied": null,
+    "gpu_allocated": false,
+    "total_slices": 1,
+    "successful_slices": 1,
+    "failed_slices": 0,
+    "peak_memory_usage": 0,
+    "gpu_utilization": 0,
+    "timeout_limit_minutes": 45.0,
+    "force_cpu": true,
+    "auto_chain_analysis": false,
+    "chain_ready": true,
+    "job_id": "c7f54605-f39c-44d2-a882-af9b1e65eef8",
+    "completed_at": 1758676426.096627
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "id": "1f37dde5-6a0f-444a-9960-97681c98f1f2",
+  "job_type": "segmentation",
+  "status": "queued",
+  "progress": 0.0,
+  "status_message": "",
+  "error_message": "",
+  "error_trace": "",
+  "created_at": "2025-09-15T21:15:09.894743",
+  "started_at": null,
+  "completed_at": null,
+  "total_time": 0.0,
+  "input_files": [],
+  "output_files": [],
+  "parameters": {
+    "input_path": "/var/folders/x5/g0hpk2g94xn0m4csqf1zsqw00000gn/T/tmpgs37mr57/test_image.tiff",
+    "output_dir": "/var/folders/x5/g0hpk2g94xn0m4csqf1zsqw00000gn/T/tmp5bhwqb_p/output_2",
+    "force_cpu": false,
+    "auto_chain_analysis": false,
+    "batch_size": 1,
+    "timeout_minutes": 2.0
+  },
+  "result": null
+}

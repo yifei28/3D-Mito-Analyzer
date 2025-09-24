@@ -1,0 +1,20 @@
+{
+  "id": "ac2c5c0b-e020-4f0b-bc4e-a602a8040125",
+  "job_type": "test",
+  "status": "failed",
+  "progress": 10,
+  "status_message": "Starting test job",
+  "error_message": "Job interrupted by system shutdown",
+  "error_trace": "",
+  "created_at": "2025-09-15T22:04:12.777869",
+  "started_at": "2025-09-15T22:04:12.786039",
+  "completed_at": "2025-09-17T16:07:45.111271",
+  "total_time": 0.0,
+  "input_files": [],
+  "output_files": [],
+  "parameters": {
+    "duration": 10,
+    "steps": 100
+  },
+  "result": null
+}

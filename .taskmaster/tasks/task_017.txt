@@ -1,0 +1,11 @@
+# Task ID: 17
+# Title: Optimize Docker Setup
+# Status: pending
+# Dependencies: 16
+# Priority: low
+# Description: Finalize Docker configuration and create comprehensive documentation
+# Details:
+Create multi-stage Dockerfile: builder stage for dependencies, runtime stage with minimal footprint. Add docker-compose.yml with volume mounts for /data/raw and /data/segmented. Include NVIDIA runtime configuration for GPU support. Create entrypoint script for initialization. Write README.md with: quick start, configuration options, volume mount guide, GPU setup, troubleshooting. Add environment variables for MODEL_PATH, DATA_PATH, LOG_LEVEL. Create .dockerignore for build optimization. Include health check endpoint.
+
+# Test Strategy:
+Build and test Docker image on Linux/Mac/Windows, verify GPU passthrough with nvidia-docker, test volume permissions, validate all documentation steps

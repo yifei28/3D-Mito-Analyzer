@@ -1,0 +1,23 @@
+{
+  "id": "54bac031-7443-4ca6-96b7-795cbe7df1ef",
+  "job_type": "test",
+  "status": "completed",
+  "progress": 100.0,
+  "status_message": "Completed successfully",
+  "error_message": "",
+  "error_trace": "",
+  "created_at": "2025-09-15T21:14:28.262931",
+  "started_at": "2025-09-15T21:14:28.365396",
+  "completed_at": "2025-09-15T21:14:29.380474",
+  "total_time": 1.015078,
+  "input_files": [],
+  "output_files": [],
+  "parameters": {
+    "duration": 1,
+    "steps": 3
+  },
+  "result": {
+    "message": "Test job completed",
+    "duration": 1
+  }
+}

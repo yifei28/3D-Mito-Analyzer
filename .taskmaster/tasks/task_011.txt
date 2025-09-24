@@ -1,0 +1,43 @@
+# Task ID: 11
+# Title: Integrate MoDL with Background Job System
+# Status: pending
+# Dependencies: 7, 8, 9, 10
+# Priority: medium
+# Description: Connect MoDL segmentation to the job manager for background processing
+# Details:
+Update JobManager to support 'segmentation' job type. Implement: job executor that instantiates SegmentationWorkflow; progress forwarding from MoDL to job status; GPU queue management (max 1 segmentation job on GPU); resource cleanup with tf.keras.backend.clear_session(); timeout handling for stuck jobs (45 min limit). Add segmentation-specific job methods: submit_segmentation_job(), get_segmentation_output_path(). Implement job chaining to auto-trigger analysis after segmentation completion.
+
+# Test Strategy:
+Test complete segmentation job lifecycle, verify GPU is properly released between jobs, test timeout scenarios, ensure job chaining works correctly
+
+# Subtasks:
+## 1. Add Segmentation Job Type Support [done]
+### Dependencies: None
+### Description: Enhance JobManager to formally support segmentation job type with proper validation
+### Details:
+Implement JobType enumeration, add segmentation parameter validation (input_path, output_dir, batch_size, memory_limit_gb, timeout_minutes), create convenience methods like submit_segmentation_job() and get_segmentation_output_path(), integrate with existing job system architecture
+
+## 2. Implement Segmentation Job Executor [done]
+### Dependencies: None
+### Description: Create job execution logic that instantiates and runs SegmentationWorkflow
+### Details:
+Implement _execute_segmentation_job() method that creates SegmentationWorkflow instance, handles parameter passing, manages execution flow, and captures results. Ensure proper error handling and status updates during execution.
+
+## 3. Implement Progress Forwarding System [pending]
+### Dependencies: None
+### Description: Forward MoDL segmentation progress to job status updates
+### Details:
+Create progress callback system that captures MoDL progress events and forwards them to job status. Implement progress tracking for different segmentation phases (loading, preprocessing, inference, postprocessing, saving).
+
+## 4. GPU Resource Queue Management [pending]
+### Dependencies: None
+### Description: Implement GPU queue management to limit concurrent segmentation jobs
+### Details:
+Add GPU resource tracking to ensure maximum 1 segmentation job runs on GPU at a time. Implement queue system for GPU-bound jobs, add GPU availability checking, handle GPU resource allocation and release.
+
+## 8. Integration API Methods [pending]
+### Dependencies: None
+### Description: Add comprehensive API methods for segmentation job integration
+### Details:
+Implement remaining integration methods: get_segmentation_output_path(), list_segmentation_jobs(), get_segmentation_job_results(), add comprehensive error handling and logging throughout the integration.
+

@@ -1,0 +1,11 @@
+# Task ID: 8
+# Title: Add Job Status Tracking and Persistence
+# Status: done
+# Dependencies: 7
+# Priority: medium
+# Description: Implement persistent job status storage and recovery
+# Details:
+Create utils/job_persistence.py with JSON-based persistence in data/jobs/. Implement: save_job_status() writing to {job_id}.json with atomic writes; load_job_status() with error handling for corrupt files; cleanup_old_jobs() removing files older than 7 days using os.stat().st_mtime; get_job_history() returning list of all jobs sorted by timestamp. Add job metadata: start_time, end_time, input_file, output_file, parameters, error_trace. Implement auto-save on status changes using observer pattern. Include job recovery on app restart to resume interrupted jobs.
+
+# Test Strategy:
+Test job persistence across app restarts, verify cleanup removes old files correctly, test recovery of interrupted jobs, ensure atomic writes prevent corruption

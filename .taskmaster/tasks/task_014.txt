@@ -1,0 +1,11 @@
+# Task ID: 14
+# Title: Create File Management Utilities
+# Status: pending
+# Dependencies: 1
+# Priority: low
+# Description: Build utilities for managing files and disk space
+# Details:
+Create utils/file_manager.py with: get_directory_size() using os.walk() and os.path.getsize(); cleanup_old_files() with configurable age threshold and file patterns; monitor_disk_space() using shutil.disk_usage(); organize_files() moving files to year-month subdirectories. Implement FileCleanupPolicy class with size and age based rules. Add important file protection with .keep files. Create backup_results() using shutil for critical data. Include restore functionality from backups.
+
+# Test Strategy:
+Test cleanup policies with test files, verify disk monitoring accuracy, test file organization maintains references, ensure protected files aren't deleted

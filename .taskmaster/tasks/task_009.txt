@@ -1,0 +1,11 @@
+# Task ID: 9
+# Title: Implement Progress Bars and Job Queue UI
+# Status: done
+# Dependencies: 7, 8
+# Priority: medium
+# Description: Create UI components for displaying job progress and queue status
+# Details:
+Create components/progress.py with: job_queue_dashboard() showing all jobs in a table with status icons; progress_bar(job_id) using st.progress() with percentage and time remaining; job_controls(job_id) with cancel/retry buttons; auto_refresh_container() using st.empty() and time.sleep() for updates. Implement estimated time calculation based on file size and historical data. Add color coding: blue=queued, yellow=running, green=completed, red=failed. Use st.rerun() for periodic updates every 2 seconds when jobs are active.
+
+# Test Strategy:
+Test progress updates during job execution, verify cancel/retry functionality, ensure UI updates without flickering, test with multiple concurrent jobs

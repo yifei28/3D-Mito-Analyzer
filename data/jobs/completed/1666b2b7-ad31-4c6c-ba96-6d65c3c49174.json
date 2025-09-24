@@ -1,0 +1,24 @@
+{
+  "id": "1666b2b7-ad31-4c6c-ba96-6d65c3c49174",
+  "job_type": "segmentation",
+  "status": "failed",
+  "progress": 24.5,
+  "status_message": "Failed: Segmentation failed: Segmentation failed: name 'input_shape' is not defined",
+  "error_message": "Segmentation failed: Segmentation failed: name 'input_shape' is not defined",
+  "error_trace": "Segmentation failed: Segmentation failed: name 'input_shape' is not defined",
+  "created_at": "2025-09-15T21:15:09.894065",
+  "started_at": "2025-09-15T21:15:09.994276",
+  "completed_at": "2025-09-15T21:15:55.078088",
+  "total_time": 45.083812,
+  "input_files": [],
+  "output_files": [],
+  "parameters": {
+    "input_path": "/var/folders/x5/g0hpk2g94xn0m4csqf1zsqw00000gn/T/tmpgs37mr57/test_image.tiff",
+    "output_dir": "/var/folders/x5/g0hpk2g94xn0m4csqf1zsqw00000gn/T/tmp5bhwqb_p/output_0",
+    "force_cpu": false,
+    "auto_chain_analysis": false,
+    "batch_size": 1,
+    "timeout_minutes": 2.0
+  },
+  "result": null
+}

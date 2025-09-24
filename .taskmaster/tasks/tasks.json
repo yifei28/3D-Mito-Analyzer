@@ -152,7 +152,7 @@
         "dependencies": [
           4
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
@@ -167,7 +167,7 @@
           4,
           5
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
@@ -180,7 +180,7 @@
         "dependencies": [
           1
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
@@ -193,7 +193,7 @@
         "dependencies": [
           7
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
@@ -207,21 +207,88 @@
           7,
           8
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
         "id": 10,
         "title": "Create Segmentation Workflow Wrapper",
-        "description": "Adapt the existing MoDL segmentation code for the job system",
-        "details": "Create workflows/segmentation.py adapting MoDL/MoDL_seg/segment_predict.py. Implement SegmentationWorkflow class with: run_segmentation(input_path, output_dir, progress_callback) method; automatic z-stack detection from original code; progress reporting at each slice processing (0-100%); GPU memory management with tf.config.experimental.set_memory_growth(); error handling for OOM and invalid files. Output naming convention: {original_name}_segmented.tif. Add metadata JSON alongside output with processing parameters and timing info.",
-        "testStrategy": "Test with sample raw TIFF files of various sizes, verify progress reporting accuracy, test GPU memory limits, ensure output files are valid and correctly named",
-        "priority": "medium",
+        "description": "Adapt the existing MoDL segmentation code for the job system with comprehensive CPU-only support",
+        "status": "done",
         "dependencies": [
           1
         ],
-        "status": "pending",
-        "subtasks": []
+        "priority": "medium",
+        "details": "Create workflows/segmentation.py adapting MoDL/MoDL_seg/segment_predict.py. Implement SegmentationWorkflow class with: run_segmentation(input_path, output_dir, progress_callback) method; automatic z-stack detection from original code; progress reporting at each slice processing (0-100%); hardware-aware TensorFlow configuration with automatic CPU/GPU detection; CPU-only fallback with optimized batch sizes and memory management; clear user feedback about processing mode; error handling for OOM and invalid files. Output naming convention: {original_name}_segmented.tif. Add metadata JSON alongside output with processing parameters and timing info.",
+        "testStrategy": "Test with sample raw TIFF files of various sizes, verify progress reporting accuracy, test both CPU and GPU processing modes, test automatic hardware detection, verify CPU-specific batch size optimization, ensure output files are valid and correctly named",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Hardware Detection and TensorFlow Configuration",
+            "description": "Create hardware-aware TensorFlow setup with automatic CPU/GPU detection",
+            "status": "done",
+            "dependencies": [],
+            "details": "Create workflows/segmentation.py file. Define SegmentationWorkflow class with __init__ method that detects available hardware (GPU/CPU). Implement configure_tensorflow() method that sets up TensorFlow for optimal performance on detected hardware. For GPU: use tf.config.experimental.set_memory_growth() and configure CUDA. For CPU-only: set tf.config.threading options, disable GPU, optimize for CPU with tf.config.optimizer.set_jit(True). Store hardware configuration state and provide user feedback about detected processing mode.",
+            "testStrategy": "Test hardware detection on systems with and without GPU, verify TensorFlow configuration is applied correctly for each mode, ensure CPU-only configuration disables GPU completely, test user feedback messages"
+          },
+          {
+            "id": 2,
+            "title": "Adapt Z-Stack Detection and Image Loading",
+            "description": "Port the automatic z-stack detection logic from segment_predict.py",
+            "status": "done",
+            "dependencies": [
+              1
+            ],
+            "details": "Extract and adapt the z-stack detection code from MoDL/MoDL_seg/segment_predict.py. Implement load_and_detect_zstack(input_path) method that reads TIFF files using tifffile, automatically detects z-stack dimensions, handles both 2D and 3D images, and validates image format. Create helper methods for image normalization and preprocessing. Add comprehensive error handling for corrupted or unsupported TIFF formats.",
+            "testStrategy": "Test with TIFF files of various dimensions (2D, 3D, 4D), verify z-stack detection matches original implementation, test with edge cases like single-slice images, ensure proper error messages for invalid files"
+          },
+          {
+            "id": 3,
+            "title": "Implement CPU-Optimized Batch Processing",
+            "description": "Create CPU-aware batch size optimization and processing strategy",
+            "status": "done",
+            "dependencies": [
+              1,
+              2
+            ],
+            "details": "Implement adaptive batch sizing based on hardware type and available memory. For CPU processing: use smaller batch sizes (1-4 slices) to prevent memory overflow, implement memory monitoring with psutil, optimize numpy operations with MKL if available. For GPU: use larger batches (8-16 slices) with GPU memory monitoring. Create get_optimal_batch_size() method that considers available RAM/VRAM, image dimensions, and hardware type. Add dynamic batch size adjustment during processing if memory pressure detected.",
+            "testStrategy": "Test batch size optimization on CPU vs GPU systems, verify memory usage stays within limits, test dynamic adjustment under memory pressure, ensure processing efficiency is optimized for each hardware type"
+          },
+          {
+            "id": 4,
+            "title": "Implement Segmentation Processing with Progress Tracking",
+            "description": "Create the main segmentation method with hardware-aware processing and progress reporting",
+            "status": "done",
+            "dependencies": [
+              3
+            ],
+            "details": "Implement run_segmentation(input_path, output_dir, progress_callback) method. Process images using hardware-optimized batch sizes from subtask 3. Call progress_callback with percentage (0-100) and processing mode info (CPU/GPU) after each batch. Handle both CPU and GPU processing paths with appropriate memory management. Implement proper image reconstruction from processed batches. Add CPU-specific optimizations like multi-threading where beneficial.",
+            "testStrategy": "Test progress callback with CPU vs GPU processing modes, verify segmentation results match original model output on both hardware types, test with large z-stacks for memory efficiency, ensure progress includes hardware mode information"
+          },
+          {
+            "id": 5,
+            "title": "Add Robust Error Handling and Hardware Fallback",
+            "description": "Implement comprehensive error handling with automatic CPU fallback",
+            "status": "done",
+            "dependencies": [
+              4
+            ],
+            "details": "Wrap segmentation logic in try-except blocks for hardware-specific errors. For GPU: catch tf.errors.ResourceExhaustedError (OOM) and automatically fallback to CPU mode with user notification. For CPU: implement memory monitoring and batch size reduction on RAM pressure. Add specific handlers for: invalid TIFF formats, permission errors, disk space issues. Create detailed error messages with actionable suggestions. Implement cleanup of temporary files on failure and automatic retry logic for hardware switching.",
+            "testStrategy": "Test GPU OOM handling with automatic CPU fallback, verify CPU memory pressure handling, test recovery from simulated disk space errors, ensure user gets clear notifications about hardware mode changes"
+          },
+          {
+            "id": 6,
+            "title": "Create Output Management and Hardware-Aware Metadata",
+            "description": "Handle output file naming, saving, and comprehensive metadata generation",
+            "status": "done",
+            "dependencies": [
+              4,
+              5
+            ],
+            "details": "Implement save_results() method following {original_name}_segmented.tif naming convention. Save segmented images using tifffile with proper metadata preservation. Generate accompanying JSON metadata file containing: input file info, processing parameters (model version, hardware used - CPU/GPU, batch size, memory usage), timing information (start time, end time, duration), z-stack dimensions, hardware fallback events, performance metrics (slices/second). Ensure atomic file operations and validate output directory permissions.",
+            "testStrategy": "Test output file naming with various input names, verify metadata JSON contains hardware-specific information, test atomic write operations, ensure TIFF metadata is preserved, validate performance metrics accuracy"
+          }
+        ]
       },
       {
         "id": 11,
@@ -236,8 +303,54 @@
           9,
           10
         ],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Add Segmentation Job Type Support",
+            "description": "Enhance JobManager to formally support segmentation job type with proper validation",
+            "details": "Implement JobType enumeration, add segmentation parameter validation (input_path, output_dir, batch_size, memory_limit_gb, timeout_minutes), create convenience methods like submit_segmentation_job() and get_segmentation_output_path(), integrate with existing job system architecture",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 11
+          },
+          {
+            "id": 2,
+            "title": "Implement Segmentation Job Executor",
+            "description": "Create job execution logic that instantiates and runs SegmentationWorkflow",
+            "details": "Implement _execute_segmentation_job() method that creates SegmentationWorkflow instance, handles parameter passing, manages execution flow, and captures results. Ensure proper error handling and status updates during execution.",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 11
+          },
+          {
+            "id": 3,
+            "title": "Implement Progress Forwarding System",
+            "description": "Forward MoDL segmentation progress to job status updates",
+            "details": "Create progress callback system that captures MoDL progress events and forwards them to job status. Implement progress tracking for different segmentation phases (loading, preprocessing, inference, postprocessing, saving).",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 11
+          },
+          {
+            "id": 4,
+            "title": "GPU Resource Queue Management",
+            "description": "Implement GPU queue management to limit concurrent segmentation jobs",
+            "details": "Add GPU resource tracking to ensure maximum 1 segmentation job runs on GPU at a time. Implement queue system for GPU-bound jobs, add GPU availability checking, handle GPU resource allocation and release.",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 11
+          },
+          {
+            "id": 8,
+            "title": "Integration API Methods",
+            "description": "Add comprehensive API methods for segmentation job integration",
+            "details": "Implement remaining integration methods: get_segmentation_output_path(), list_segmentation_jobs(), get_segmentation_job_results(), add comprehensive error handling and logging throughout the integration.",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 11
+          }
+        ]
       },
       {
         "id": 12,
@@ -323,7 +436,7 @@
     ],
     "metadata": {
       "created": "2025-09-03T05:53:09.650Z",
-      "updated": "2025-09-03T06:52:35.944Z",
+      "updated": "2025-09-16T02:48:32.589Z",
       "description": "Tasks for master context"
     }
   }

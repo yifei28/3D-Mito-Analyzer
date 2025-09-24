@@ -1,0 +1,11 @@
+# Task ID: 16
+# Title: Test Complete Workflows
+# Status: pending
+# Dependencies: 6, 11, 13
+# Priority: medium
+# Description: Perform comprehensive end-to-end testing of all workflows
+# Details:
+Create tests/test_workflows.py with pytest framework. Implement: test fixtures with sample TIFF files; test_analysis_workflow() covering file selection to export; test_segmentation_workflow() from submission to completion; test_concurrent_jobs() with multiple operations; performance benchmarks measuring processing times; stress tests with 2GB files. Create synthetic test data generator for various mitochondrial patterns. Document performance baselines. Add integration tests for job recovery scenarios.
+
+# Test Strategy:
+Execute full test suite with pytest, measure code coverage >80%, document performance metrics, create test report with recommendations

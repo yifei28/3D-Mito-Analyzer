@@ -1,0 +1,43 @@
+# Task ID: 2
+# Title: Create Core Application Architecture
+# Status: done
+# Dependencies: 1
+# Priority: high
+# Description: Build the main Streamlit application with navigation and layout structure
+# Details:
+Create app.py with st.set_page_config(page_title='Mitochondria Analyzer', layout='wide'). Implement sidebar navigation with st.sidebar.radio for 'Analysis' and 'Segmentation' tabs. Use st.tabs() for sub-navigation within each main section. Create placeholder containers for each workflow. Implement session state management for maintaining UI state across reruns. Add custom CSS with st.markdown for professional styling. Include header with project title and description.
+
+# Test Strategy:
+Run streamlit app and verify navigation works, tabs switch correctly, layout is responsive, session state persists across interactions, and custom styling is applied
+
+# Subtasks:
+## 1. Set up Streamlit page configuration and basic structure [done]
+### Dependencies: None
+### Description: Initialize the Streamlit application with proper page configuration and create the main app.py file with basic structure
+### Details:
+Create app.py in the project root. Use st.set_page_config(page_title='Mitochondria Analyzer', layout='wide', page_icon='🔬') to configure the page. Set up the main() function as the entry point. Import necessary Streamlit components and create the basic app structure with if __name__ == '__main__': main(). Add docstring explaining the application purpose.
+
+## 2. Implement sidebar navigation with main sections [done]
+### Dependencies: 2.1
+### Description: Create the main navigation sidebar with radio buttons for switching between Analysis and Segmentation workflows
+### Details:
+In app.py, implement st.sidebar with st.sidebar.title('Navigation'). Use st.sidebar.radio('Select Workflow', ['Analysis', 'Segmentation']) to create main navigation. Store selected workflow in st.session_state.current_workflow for state persistence. Add sidebar styling with st.sidebar.markdown() to include separators and section descriptions. Include version info and last update timestamp in sidebar footer.
+
+## 3. Create tab-based sub-navigation for each workflow [done]
+### Dependencies: 2.2
+### Description: Implement dynamic tab navigation within each main section using st.tabs()
+### Details:
+For Analysis workflow, create tabs: ['Upload & Configure', 'Run Analysis', 'View Results', 'Export']. For Segmentation workflow, create tabs: ['Select Images', 'Configure Model', 'Run Segmentation', 'Review Output']. Use conditional rendering based on st.session_state.current_workflow. Store active tab in session state as st.session_state[f'{workflow}_active_tab']. Add tab icons using emoji for better UX.
+
+## 4. Implement session state management and placeholder containers [done]
+### Dependencies: 2.3
+### Description: Set up comprehensive session state management and create placeholder containers for each workflow section
+### Details:
+Initialize session state variables in a dedicated function init_session_state() for: current_workflow, active_tabs, file_selections, analysis_results, segmentation_results, processing_status. Create placeholder containers using st.container() and st.empty() for each tab content. Implement state reset functions for clearing workflow data. Add state persistence helpers for maintaining user inputs across reruns.
+
+## 5. Add custom CSS styling and professional UI elements [done]
+### Dependencies: 2.4
+### Description: Implement custom CSS for professional appearance and add header with project information
+### Details:
+Create custom CSS using st.markdown with unsafe_allow_html=True for: custom color scheme matching scientific applications, styled buttons with hover effects, improved spacing and padding, custom fonts for headers. Add application header with st.columns() containing project logo placeholder, title 'Mitochondria Analyzer', and subtitle describing the tool. Include CSS for responsive design on different screen sizes. Style progress bars and status indicators.
+

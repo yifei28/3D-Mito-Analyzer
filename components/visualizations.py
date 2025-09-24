@@ -132,35 +132,29 @@ def display_analysis_summary(result: Dict[str, Any]) -> None:
     
     st.success("✅ Analysis completed successfully!")
     
-    # Create columns for metrics
-    col1, col2, col3, col4 = st.columns(4)
+    # Display metrics - each in its own row for better spacing
+    st.metric(
+        label="🔬 Networks Found", 
+        value=result.get('network_count', 0)
+    )
     
-    with col1:
+    st.metric(
+        label="📊 Total Volume", 
+        value=f"{result.get('total_volume', 0):.2f} μm³"
+    )
+    
+    if 'volume_statistics' in result:
         st.metric(
-            label="🔬 Networks Found", 
-            value=result.get('network_count', 0)
+            label="📈 Average Volume", 
+            value=f"{result['volume_statistics']['mean_volume']:.2f} μm³"
         )
+    else:
+        st.metric(label="📈 Average Volume", value="N/A")
     
-    with col2:
-        st.metric(
-            label="📊 Total Volume", 
-            value=f"{result.get('total_volume', 0):.2f} μm³"
-        )
-    
-    with col3:
-        if 'volume_statistics' in result:
-            st.metric(
-                label="📈 Average Volume", 
-                value=f"{result['volume_statistics']['mean_volume']:.2f} μm³"
-            )
-        else:
-            st.metric(label="📈 Average Volume", value="N/A")
-    
-    with col4:
-        st.metric(
-            label="⏱️ Processing Time", 
-            value=f"{result.get('processing_time', 0):.1f}s"
-        )
+    st.metric(
+        label="⏱️ Processing Time", 
+        value=f"{result.get('processing_time', 0):.1f}s"
+    )
     
     # Additional metrics if available
     if 'z_spread_analysis' in result:
@@ -254,14 +248,19 @@ def display_slice_viewer(result: Dict[str, Any]) -> None:
     labeled_image = result['labeled_image']
     z_depth = labeled_image.shape[0]
     
-    # Slice selection slider
-    slice_idx = st.slider(
-        "Select Z-slice:", 
-        min_value=0, 
-        max_value=z_depth - 1, 
-        value=z_depth // 2,
-        key="slice_viewer_slider"
-    )
+    # Slice selection slider (handle single-slice images)
+    if z_depth > 1:
+        slice_idx = st.slider(
+            "Select Z-slice:",
+            min_value=0,
+            max_value=z_depth - 1,
+            value=z_depth // 2,
+            key="slice_viewer_slider"
+        )
+    else:
+        # Single slice - no slider needed
+        slice_idx = 0
+        st.info(f"📸 Single slice image (Z-depth: {z_depth})")
     
     # Display current slice info
     st.info(f"Showing slice {slice_idx} of {z_depth - 1} (Z-depth: {z_depth})")
