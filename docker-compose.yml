@@ -1,15 +1,42 @@
-version: '3.8'
-
 services:
   mito-analyzer:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mitochondria-analyzer
     ports:
       - "8501:8501"
     volumes:
-      # Mount host directories to container
-      - ./sample_data/raw:/app/data/raw
-      - ./sample_data/segmented:/app/data/segmented
-      - ./sample_data/results:/app/data/results
+      # Mount directories for data persistence
+      - ./data/raw:/app/data/raw
+      - ./data/segmented:/app/data/segmented
+      - ./data/analyzed:/app/data/analyzed
+      - ./logs:/app/logs
+      # Mount MoDL model directory (required for segmentation)
+      - ./MoDL/model:/app/MoDL/model
     environment:
       - PYTHONPATH=/app
+      - STREAMLIT_SERVER_HEADLESS=true
+      - STREAMLIT_SERVER_ADDRESS=0.0.0.0
+      - STREAMLIT_SERVER_PORT=8501
+      - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+      # TensorFlow memory optimization
+      - TF_CPP_MIN_LOG_LEVEL=1
+      - TF_FORCE_GPU_ALLOW_GROWTH=true
+      - TF_MEMORY_ALLOCATION=incremental
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Resource limits (adjust based on your Windows PC specs)
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 8G
+        reservations:
+          cpus: '2.0'
+          memory: 4G

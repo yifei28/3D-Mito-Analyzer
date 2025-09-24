@@ -373,8 +373,12 @@ class SegmentationWorkflow:
             # Set inter-op and intra-op parallelism
             tf.config.threading.set_inter_op_parallelism_threads(cpu_count)
             tf.config.threading.set_intra_op_parallelism_threads(cpu_count)
-            
-            self.logger.info(f"✅ CPU configured: {cpu_count} threads, XLA enabled")
+
+            # Configure memory growth to prevent large chunk allocations
+            # This prevents TensorFlow from allocating 1GB chunks at once
+            tf.config.experimental.set_memory_growth_compatible(True)
+
+            self.logger.info(f"✅ CPU configured: {cpu_count} threads, XLA enabled, memory growth enabled")
             
         except Exception as e:
             self.logger.error(f"CPU configuration failed: {e}")
@@ -386,6 +390,9 @@ class SegmentationWorkflow:
         
         # Minimal configuration that should always work
         tf.config.set_visible_devices([], 'GPU')
+
+        # Enable memory growth to prevent large chunk allocations
+        tf.config.experimental.set_memory_growth_compatible(True)
         
         # Update hardware config to reflect fallback
         if self.hardware_config:
